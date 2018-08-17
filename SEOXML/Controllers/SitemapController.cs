@@ -14,7 +14,9 @@ namespace SEOXML.Controllers
 
         public IActionResult Index()
         {
-            var baseUrl = HttpContext.Request.Host.Value;
+            string baseUrl = Request.Scheme + "://" + Request.Host.Value;
+
+            //var baseUrl = HttpContext.Request.Host.Value;
             return new SitemapResult(sitemapService.GenerateSitemap(baseUrl));
         }
     }

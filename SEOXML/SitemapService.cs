@@ -36,7 +36,7 @@ namespace SEOXML
                     .Select(x => new { Controller = x.DeclaringType.Name, Action = x.Name, ReturnType = x.ReturnType.Name, Attributes = String.Join(",", x.GetCustomAttributes().Select(a => a.GetType().Name.Replace("Attribute", ""))) })
                     .OrderBy(x => x.Controller).ThenBy(x => x.Action).Select(s => new AssemblyController()
                     {
-                        Controller = s.Controller,
+                        Controller = s.Controller.ToLower().Replace("controller", ""),
                         Action = s.Action,
                         Attributes = s.Attributes,
                         ReturnType = s.ReturnType
@@ -66,7 +66,7 @@ namespace SEOXML
             var controllers = GetControllers();
             foreach (var controller in controllers)
             {
-                sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller.Replace("controller", "") + "/" + controller.Action, changeFrequency: SitemapChangeFrequency.Always, priority: 1.0));
+                sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller + "/" + controller.Action, changeFrequency: SitemapChangeFrequency.Always, priority: 1.0));
             }
 
             return sitemapItems;

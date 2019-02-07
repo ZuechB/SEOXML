@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SampleSEOSite.Models;
+using SEOXML.Models;
 
 namespace SampleSEOSite.Controllers
 {
     public class HomeController : Controller
     {
+        [SEO(SitemapChangeFrequency.Daily, 1.0)]
         public IActionResult Index()
         {
             return View();
@@ -29,11 +31,13 @@ namespace SampleSEOSite.Controllers
             return View();
         }
 
+        [Route("/Changedtheurl")]
         public IActionResult Privacy()
         {
             return View();
         }
 
+        [HideSEO]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

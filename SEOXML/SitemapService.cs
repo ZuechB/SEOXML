@@ -73,7 +73,7 @@ namespace SEOXML
             var controllers = GetControllers();
             foreach (var controller in controllers)
             {
-                if (controller.Attributes.Where(s => s.GetType() == typeof(HttpPostAttribute)).FirstOrDefault() == null)
+                if (controller.Attributes.Where(s => s.GetType() == typeof(HttpPostAttribute) || s.GetType() == typeof(HttpDeleteAttribute) || s.GetType() == typeof(HttpPutAttribute)).FirstOrDefault() == null)
                 {
                     var hideSEO = controller.Attributes.Where(s => s.GetType() == typeof(HideSEOAttribute)).FirstOrDefault();
                     if (hideSEO == null)

@@ -42,6 +42,18 @@ namespace SampleSEOSite.Controllers
             return View();
         }
 
+        [HttpDelete]
+        public IActionResult LookAtMe()
+        {
+            return View();
+        }
+
+        [HttpPut]
+        public IActionResult ThisIsPutOffIsh()
+        {
+            return View();
+        }
+
         [HttpPost]
         public async Task<IActionResult> Test()
         {

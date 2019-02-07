@@ -21,7 +21,6 @@ namespace SampleSEOSite.Controllers
 
             sitemapData.Add(new SitemapItem("/specialpage"));
 
-
             return sitemapService.GenerateSitemap(data =>
             {
                 data.AddRange(sitemapData);

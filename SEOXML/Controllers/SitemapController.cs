@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SEOXML.Models;
+using System.Threading.Tasks;
 
 namespace SEOXML.Controllers
 {
@@ -12,10 +13,10 @@ namespace SEOXML.Controllers
             this.sitemapService = sitemapService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             string baseUrl = Request.Scheme + "://" + Request.Host.Value;
-            return new SitemapResult(sitemapService.GenerateSitemap(baseUrl));
+            return new SitemapResult(await sitemapService.GenerateSitemap(baseUrl));
         }
     }
 }

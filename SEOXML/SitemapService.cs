@@ -1,21 +1,30 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SEOXML.Controllers;
+using SEOXML.Database;
 using SEOXML.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace SEOXML
 {
     public interface ISitemapService
     {
-        List<SitemapItem> GenerateSitemap(string baseUrl);
+        Task<List<SitemapItem>> GenerateSitemap(string baseUrl);
         List<AssemblyController> GetControllers();
     }
 
     public class SitemapService : ISitemapService
     {
+        readonly SEOContext context;
+        public SitemapService(SEOContext context)
+        {
+            this.context = context;
+        }
+
         public List<AssemblyController> GetControllers()
         {
             var name = System.AppDomain.CurrentDomain.FriendlyName;
@@ -55,7 +64,7 @@ namespace SEOXML
             return null;
         }
 
-        public List<SitemapItem> GenerateSitemap(string baseUrl)
+        public async Task<List<SitemapItem>> GenerateSitemap(string baseUrl)
         {
             var sitemapItems = new List<SitemapItem>();
 
@@ -101,6 +110,12 @@ namespace SEOXML
                         }
                     }
                 }
+            }
+
+            var views = await context.SEOViews.Where(s => !s.IsDeactivated).Select(s => new SitemapItem(s.Url, s.LastModified, s.ChangeFrequency, s.Priority)).ToListAsync();
+            if (views != null)
+            {
+                sitemapItems.AddRange(views);
             }
 
             return sitemapItems;

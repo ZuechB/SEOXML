@@ -1,31 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SEOXML.Controllers;
-using SEOXML.Database;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using SEOXML.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace SEOXML
 {
     public interface ISitemapService
     {
-        Task<List<SitemapItem>> GenerateSitemap(string baseUrl);
-        List<AssemblyController> GetControllers();
+        SitemapResult GenerateSitemap(Action<List<SitemapItem>> sitemapData = null);
     }
 
     public class SitemapService : ISitemapService
     {
-        readonly SEOContext context;
-        public SitemapService(SEOContext context)
+        readonly IHttpContextAccessor httpContextAccessor;
+
+        public SitemapService(IHttpContextAccessor httpContextAccessor)
         {
-            this.context = context;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
-        public List<AssemblyController> GetControllers()
+        private List<AssemblyController> GetControllers()
         {
             var name = System.AppDomain.CurrentDomain.FriendlyName;
             var nameSpace = name + ".Controllers";
@@ -37,7 +34,7 @@ namespace SEOXML
             return asm.GetTypes()
                     .Where(type => typeof(Microsoft.AspNetCore.Mvc.Controller).IsAssignableFrom(type))
                     .SelectMany(type => type.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
-                    .Where(m => !m.GetCustomAttributes(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), true).Any() && m.ReturnType == typeof(IActionResult) && m.DeclaringType != typeof(SitemapController))
+                    .Where(m => !m.GetCustomAttributes(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), true).Any() && m.ReturnType == typeof(IActionResult))
                     .Select(x => new { Controller = x.DeclaringType.Name, Action = x.Name, ReturnType = x.ReturnType.Name, Attributes = x.GetCustomAttributes() })
                     .OrderBy(x => x.Controller).ThenBy(x => x.Action).Select(s => new AssemblyController()
                     {
@@ -64,9 +61,13 @@ namespace SEOXML
             return null;
         }
 
-        public async Task<List<SitemapItem>> GenerateSitemap(string baseUrl)
+        public SitemapResult GenerateSitemap(Action<List<SitemapItem>> sitemapData = null)
         {
+            string baseUrl = httpContextAccessor.HttpContext.Request.Scheme + "://" + httpContextAccessor.HttpContext.Request.Host.Value;
+
             var sitemapItems = new List<SitemapItem>();
+
+            sitemapData?.Invoke(sitemapItems);
 
             var controllers = GetControllers();
             foreach (var controller in controllers)
@@ -112,13 +113,7 @@ namespace SEOXML
                 }
             }
 
-            var views = await context.SEOViews.Where(s => !s.IsDeactivated).Select(s => new SitemapItem(s.Url, s.LastModified, s.ChangeFrequency, s.Priority)).ToListAsync();
-            if (views != null)
-            {
-                sitemapItems.AddRange(views);
-            }
-
-            return sitemapItems;
+            return new SitemapResult(sitemapItems);
         }
     }
 }

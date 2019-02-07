@@ -8,6 +8,6 @@ namespace SEOXML.Models
         public string Controller { get; set; }
         public string Action { get; set; }
         public IEnumerable<Attribute> Attributes { get; set; }
-        public string ReturnType { get; set; }
+        public Type ReturnType { get; set; }
     }
 }

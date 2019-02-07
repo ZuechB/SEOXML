@@ -31,9 +31,27 @@ namespace SampleSEOSite.Controllers
             return View();
         }
 
+        public object Apples()
+        {
+            return Content("");
+        }
+
         [Route("/Changedtheurl")]
         public IActionResult Privacy()
         {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Test()
+        {
+            await Task.Delay(1000);
+            return Json(true);
+        }
+
+        public async Task<IActionResult> AnotherTest() // this one should be showing but isn't because of Task
+        {
+            await Task.Delay(1000);
             return View();
         }
 

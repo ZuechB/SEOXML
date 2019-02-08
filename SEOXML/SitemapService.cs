@@ -11,12 +11,18 @@ namespace SEOXML
 {
     public interface ISitemapService
     {
+        /// <summary>
+        /// Will remove the Index action off of each controller
+        /// </summary>
+        bool IgnoreIndexActions { get; set; }
         SitemapResult GenerateSitemap(Action<List<SitemapItem>> sitemapData = null);
     }
 
     public class SitemapService : ISitemapService
     {
         readonly IHttpContextAccessor httpContextAccessor;
+
+        public bool IgnoreIndexActions { get; set; } = false;
 
         public SitemapService(IHttpContextAccessor httpContextAccessor)
         {
@@ -104,13 +110,20 @@ namespace SEOXML
                         }
                         else
                         {
-                            if (controller.Controller.ToLower() == "home" && controller.Action.ToLower() == "Index")
+                            if (controller.Controller.ToLower() == "home" && controller.Action.ToLower() == "index")
                             {
                                 sitemapItems.Add(new SitemapItem(baseUrl, changeFrequency: seo.Frequency, priority: seo.Priority));
                             }
                             else
                             {
-                                sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller + "/" + controller.Action, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                if (IgnoreIndexActions && controller.Action.ToLower() == "index")
+                                {
+                                    sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                }
+                                else
+                                {
+                                    sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller + "/" + controller.Action, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                }
                             }
                         }
                     }

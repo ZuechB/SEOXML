@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace SEOXML
 {
@@ -15,18 +16,20 @@ namespace SEOXML
         /// Will remove the Index action off of each controller
         /// </summary>
         bool IgnoreIndexActions { get; set; }
-        SitemapResult GenerateSitemap(Action<List<SitemapItem>> sitemapData = null);
+        string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null);
     }
 
     public class SitemapService : ISitemapService
     {
         readonly IHttpContextAccessor httpContextAccessor;
+        readonly ISitemapGenerator generator;
 
         public bool IgnoreIndexActions { get; set; } = false;
 
-        public SitemapService(IHttpContextAccessor httpContextAccessor)
+        public SitemapService(IHttpContextAccessor httpContextAccessor, ISitemapGenerator generator)
         {
             this.httpContextAccessor = httpContextAccessor;
+            this.generator = generator;
         }
 
         private List<AssemblyController> GetControllers()
@@ -68,7 +71,7 @@ namespace SEOXML
             return null;
         }
 
-        public SitemapResult GenerateSitemap(Action<List<SitemapItem>> sitemapData = null)
+        public string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null)
         {
             string baseUrl = httpContextAccessor.HttpContext.Request.Scheme + "://" + httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -130,7 +133,10 @@ namespace SEOXML
                 }
             }
 
-            return new SitemapResult(sitemapItems);
+
+            var sitemap = generator.GenerateSiteMap(sitemapItems);
+
+            return sitemap.ToString();
         }
     }
 }

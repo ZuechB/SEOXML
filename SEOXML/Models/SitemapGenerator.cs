@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace SEOXML.Models
@@ -42,7 +40,7 @@ namespace SEOXML.Models
             // all other elements are optional
 
             if (item.LastModified.HasValue)
-                itemElement.Add(new XElement(xmlns + "lastmod", item.LastModified.Value.ToString("yyyy-MM-dd")));
+                itemElement.Add(new XElement(xmlns + "lastmod", item.LastModified.Value.ToString("yyyy-MM-ddTHH:mm:sszzz")));
 
             if (item.ChangeFrequency.HasValue)
                 itemElement.Add(new XElement(xmlns + "changefreq", item.ChangeFrequency.Value.ToString().ToLower()));

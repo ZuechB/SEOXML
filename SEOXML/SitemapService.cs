@@ -16,7 +16,7 @@ namespace SEOXML
         /// Will remove the Index action off of each controller
         /// </summary>
         bool IgnoreIndexActions { get; set; }
-        string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null);
+        string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null, bool ignoreController = false);
     }
 
     public class SitemapService : ISitemapService
@@ -71,7 +71,7 @@ namespace SEOXML
             return null;
         }
 
-        public string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null)
+        public string GenerateSitemap(Action<List<SitemapItem>> sitemapData = null, bool ignoreController = false)
         {
             string baseUrl = httpContextAccessor.HttpContext.Request.Scheme + "://" + httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -79,53 +79,57 @@ namespace SEOXML
 
             sitemapData?.Invoke(sitemapItems);
 
-            var controllers = GetControllers();
-            foreach (var controller in controllers)
+
+            if (!ignoreController)
             {
-                if (controller.Attributes.Where(s => s.GetType() == typeof(HttpPostAttribute) || s.GetType() == typeof(HttpDeleteAttribute) || s.GetType() == typeof(HttpPutAttribute)).FirstOrDefault() == null)
+                var controllers = GetControllers();
+                foreach (var controller in controllers)
                 {
-                    var hideSEO = controller.Attributes.Where(s => s.GetType() == typeof(HideSEOAttribute)).FirstOrDefault();
-                    if (hideSEO == null)
+                    if (controller.Attributes.Where(s => s.GetType() == typeof(HttpPostAttribute) || s.GetType() == typeof(HttpDeleteAttribute) || s.GetType() == typeof(HttpPutAttribute)).FirstOrDefault() == null)
                     {
-                        string routeUrl = null;
-                        SEOAttribute seo = null;
+                        var hideSEO = controller.Attributes.Where(s => s.GetType() == typeof(HideSEOAttribute)).FirstOrDefault();
+                        if (hideSEO == null)
+                        {
+                            string routeUrl = null;
+                            SEOAttribute seo = null;
 
-                        var route = controller.Attributes.Where(s => s.GetType() == typeof(RouteAttribute)).FirstOrDefault();
-                        if (route != null)
-                        {
-                            routeUrl = (route as RouteAttribute).Template;
-                        }
-
-                        // SEO Settings
-                        var seoAttribute = controller.Attributes.Where(s => s.GetType() == typeof(SEOAttribute)).FirstOrDefault();
-                        if (seoAttribute != null)
-                        {
-                            seo = (seoAttribute as SEOAttribute);
-                        }
-                        else
-                        {
-                            seo = new SEOAttribute();
-                        }
-
-                        if (!String.IsNullOrWhiteSpace(routeUrl))
-                        {
-                            sitemapItems.Add(new SitemapItem(baseUrl + routeUrl, changeFrequency: seo.Frequency, priority: seo.Priority));
-                        }
-                        else
-                        {
-                            if (controller.Controller.ToLower() == "home" && controller.Action.ToLower() == "index")
+                            var route = controller.Attributes.Where(s => s.GetType() == typeof(RouteAttribute)).FirstOrDefault();
+                            if (route != null)
                             {
-                                sitemapItems.Add(new SitemapItem(baseUrl, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                routeUrl = (route as RouteAttribute).Template;
+                            }
+
+                            // SEO Settings
+                            var seoAttribute = controller.Attributes.Where(s => s.GetType() == typeof(SEOAttribute)).FirstOrDefault();
+                            if (seoAttribute != null)
+                            {
+                                seo = (seoAttribute as SEOAttribute);
                             }
                             else
                             {
-                                if (IgnoreIndexActions && controller.Action.ToLower() == "index")
+                                seo = new SEOAttribute();
+                            }
+
+                            if (!String.IsNullOrWhiteSpace(routeUrl))
+                            {
+                                sitemapItems.Add(new SitemapItem(baseUrl + routeUrl, changeFrequency: seo.Frequency, priority: seo.Priority));
+                            }
+                            else
+                            {
+                                if (controller.Controller.ToLower() == "home" && controller.Action.ToLower() == "index")
                                 {
-                                    sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                    sitemapItems.Add(new SitemapItem(baseUrl, changeFrequency: seo.Frequency, priority: seo.Priority));
                                 }
                                 else
                                 {
-                                    sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller + "/" + controller.Action, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                    if (IgnoreIndexActions && controller.Action.ToLower() == "index")
+                                    {
+                                        sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                    }
+                                    else
+                                    {
+                                        sitemapItems.Add(new SitemapItem(baseUrl + "/" + controller.Controller + "/" + controller.Action, changeFrequency: seo.Frequency, priority: seo.Priority));
+                                    }
                                 }
                             }
                         }

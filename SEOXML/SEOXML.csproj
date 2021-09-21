@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.6.0</Version>
+    <Version>1.6.1</Version>
     <Authors>Brandon Zuech</Authors>
     <Company>Brandon Zuech</Company>
     <Description>Generate a sitemap xml automatically</Description>
